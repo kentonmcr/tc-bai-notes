@@ -5,8 +5,10 @@ const titleInput = document.getElementById("title-input");
 const bodyInput = document.getElementById("body-input");
 const notesList = document.getElementById("notes-list");
 const emptyState = document.getElementById("empty-state");
+const toast = document.getElementById("toast");
 
 let notes = loadNotes();
+let toastTimeoutId = null;
 
 function loadNotes() {
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -30,7 +32,17 @@ function createId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-function render() {
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.add("visible");
+
+  clearTimeout(toastTimeoutId);
+  toastTimeoutId = setTimeout(() => {
+    toast.classList.remove("visible");
+  }, 2000);
+}
+
+function render(flashId) {
   notesList.innerHTML = "";
 
   if (notes.length === 0) {
@@ -40,7 +52,14 @@ function render() {
   emptyState.hidden = true;
 
   for (const note of notes) {
-    notesList.appendChild(buildNoteCard(note));
+    const card = buildNoteCard(note);
+    if (note.id === flashId) {
+      card.classList.add("note-card--flash");
+      card.addEventListener("animationend", () => {
+        card.classList.remove("note-card--flash");
+      });
+    }
+    notesList.appendChild(card);
   }
 }
 
@@ -126,16 +145,18 @@ addForm.addEventListener("submit", (event) => {
   const title = titleInput.value.trim();
   if (!title) return;
 
-  notes.push({
+  const newNote = {
     id: createId(),
     title,
     body: bodyInput.value.trim(),
-  });
+  };
+  notes.unshift(newNote);
   saveNotes();
 
   addForm.reset();
   titleInput.focus();
-  render();
+  render(newNote.id);
+  showToast("Note added");
 });
 
 render();

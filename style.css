@@ -127,3 +127,36 @@ button.danger:hover {
   flex-direction: column;
   gap: 0.5rem;
 }
+
+@keyframes note-flash {
+  0% {
+    background: #fff3cd;
+  }
+  100% {
+    background: #fff;
+  }
+}
+
+.note-card--flash {
+  animation: note-flash 1.2s ease-out;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translate(-50%, 0.5rem);
+  background: #2b2b2b;
+  color: #fff;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
