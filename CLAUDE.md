@@ -30,3 +30,10 @@ title and body, edit them, and delete them.
   1. `index.html`
   2. `style.css`
   3. `app.js`
+
+## Git commits
+
+- Use Conventional Commits format: type: short description
+- Types: feat, fix, style, refactor, chore, docs
+- Keep messages under 72 characters, imperative mood, lowercase
+- Commit at logical stopping points, not after every file change
