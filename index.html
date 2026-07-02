@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <h1>Notes</h1>
+
+    <form id="add-form" class="add-form">
+      <input
+        type="text"
+        id="title-input"
+        placeholder="Title"
+        autocomplete="off"
+      >
+      <textarea
+        id="body-input"
+        placeholder="Take a note..."
+        rows="3"
+      ></textarea>
+      <button type="submit">Add note</button>
+    </form>
+
+    <p id="empty-state" class="empty-state" hidden>
+      No notes yet. Add your first one above.
+    </p>
+
+    <div id="notes-list" class="notes-list"></div>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
