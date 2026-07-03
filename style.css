@@ -99,6 +99,19 @@ button.danger:hover {
   gap: 0.75rem;
 }
 
+.date-heading {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #888;
+}
+
+.date-heading:first-child {
+  margin-top: 0;
+}
+
 .note-card {
   background: #fff;
   border: 1px solid #ddd;

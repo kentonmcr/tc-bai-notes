@@ -18,6 +18,18 @@ let notes = loadNotes();
 let toastTimeoutId = null;
 let selectedIds = new Set();
 
+let needsBackfillSave = false;
+for (const note of notes) {
+  if (typeof note.createdAt !== "number") {
+    note.createdAt = Date.now();
+    needsBackfillSave = true;
+  }
+}
+if (needsBackfillSave) {
+  sortNotesByDate();
+  saveNotes();
+}
+
 function loadNotes() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return [];
@@ -31,6 +43,10 @@ function loadNotes() {
 
 function saveNotes() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+}
+
+function sortNotesByDate() {
+  notes.sort((a, b) => b.createdAt - a.createdAt);
 }
 
 function createId() {
@@ -50,6 +66,25 @@ function showToast(message) {
   }, 2000);
 }
 
+function dayKey(timestamp) {
+  const d = new Date(timestamp);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function formatDateHeading(timestamp) {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (dayKey(timestamp) === dayKey(Date.now())) return "Today";
+  if (dayKey(timestamp) === dayKey(yesterday.getTime())) return "Yesterday";
+
+  return new Date(timestamp).toLocaleDateString(undefined, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 function render(flashId) {
   notesList.innerHTML = "";
 
@@ -60,7 +95,18 @@ function render(flashId) {
   }
   emptyState.hidden = true;
 
+  let lastDayKey = null;
+
   for (const note of notes) {
+    const noteDayKey = dayKey(note.createdAt);
+    if (noteDayKey !== lastDayKey) {
+      const heading = document.createElement("h3");
+      heading.className = "date-heading";
+      heading.textContent = formatDateHeading(note.createdAt);
+      notesList.appendChild(heading);
+      lastDayKey = noteDayKey;
+    }
+
     const row = document.createElement("div");
     row.className = "note-row";
 
@@ -239,6 +285,8 @@ function parseImportedNotes(text) {
       id: createId(),
       title: entry.title.trim(),
       body: typeof entry.body === "string" ? entry.body.trim() : "",
+      createdAt:
+        typeof entry.createdAt === "number" ? entry.createdAt : Date.now(),
     });
   }
 
@@ -268,6 +316,7 @@ importFileInput.addEventListener("change", async () => {
   }
 
   notes = [...importedNotes, ...notes];
+  sortNotesByDate();
   saveNotes();
   render();
   showToast(
@@ -287,6 +336,7 @@ addForm.addEventListener("submit", (event) => {
     id: createId(),
     title,
     body: bodyInput.value.trim(),
+    createdAt: Date.now(),
   };
   notes.unshift(newNote);
   saveNotes();
