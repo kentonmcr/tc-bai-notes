@@ -81,7 +81,9 @@ button.danger:hover {
   background: #93321f;
 }
 
-.add-form button {
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
   align-self: flex-start;
 }
 

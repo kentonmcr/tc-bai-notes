@@ -22,8 +22,12 @@
         placeholder="Take a note..."
         rows="3"
       ></textarea>
-      <button type="submit">Add note</button>
+      <div class="form-actions">
+        <button type="submit">Add note</button>
+        <button type="button" id="import-btn" class="secondary">Import notes</button>
+      </div>
     </form>
+    <input type="file" id="import-file-input" accept="application/json" hidden>
 
     <p id="empty-state" class="empty-state" hidden>
       No notes yet. Add your first one above.

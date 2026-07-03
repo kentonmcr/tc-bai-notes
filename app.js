@@ -11,6 +11,8 @@ const selectAllCheckbox = document.getElementById("select-all-checkbox");
 const selectedCountEl = document.getElementById("selected-count");
 const exportSelectedBtn = document.getElementById("export-selected-btn");
 const deleteSelectedBtn = document.getElementById("delete-selected-btn");
+const importBtn = document.getElementById("import-btn");
+const importFileInput = document.getElementById("import-file-input");
 
 let notes = loadNotes();
 let toastTimeoutId = null;
@@ -215,6 +217,59 @@ exportSelectedBtn.addEventListener("click", () => {
   link.remove();
 
   setTimeout(() => URL.revokeObjectURL(url), 0);
+});
+
+function parseImportedNotes(text) {
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return null;
+  }
+
+  if (!Array.isArray(parsed)) return null;
+
+  const importedNotes = [];
+  for (const entry of parsed) {
+    if (typeof entry !== "object" || entry === null) return null;
+    if (typeof entry.title !== "string" || entry.title.trim() === "") {
+      return null;
+    }
+    importedNotes.push({
+      id: createId(),
+      title: entry.title.trim(),
+      body: typeof entry.body === "string" ? entry.body.trim() : "",
+    });
+  }
+
+  return importedNotes;
+}
+
+importBtn.addEventListener("click", () => {
+  importFileInput.click();
+});
+
+importFileInput.addEventListener("change", async () => {
+  const file = importFileInput.files[0];
+  importFileInput.value = "";
+  if (!file) return;
+
+  const text = await file.text();
+  const importedNotes = parseImportedNotes(text);
+
+  if (!importedNotes) {
+    showToast("Import failed: invalid file");
+    return;
+  }
+
+  notes = [...importedNotes, ...notes];
+  saveNotes();
+  render();
+  showToast(
+    importedNotes.length === 1
+      ? "1 note imported"
+      : `${importedNotes.length} notes imported`
+  );
 });
 
 addForm.addEventListener("submit", (event) => {
