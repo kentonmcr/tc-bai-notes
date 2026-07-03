@@ -16,8 +16,30 @@ body {
 }
 
 h1 {
-  margin: 0 0 1.25rem;
+  margin: 0;
   font-size: 1.75rem;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.search-input {
+  font: inherit;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  flex: 0 1 220px;
+  min-width: 0;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #8a8a8a;
 }
 
 .add-form {

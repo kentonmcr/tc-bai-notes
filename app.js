@@ -13,10 +13,12 @@ const exportSelectedBtn = document.getElementById("export-selected-btn");
 const deleteSelectedBtn = document.getElementById("delete-selected-btn");
 const importBtn = document.getElementById("import-btn");
 const importFileInput = document.getElementById("import-file-input");
+const searchInput = document.getElementById("search-input");
 
 let notes = loadNotes();
 let toastTimeoutId = null;
 let selectedIds = new Set();
+let searchQuery = "";
 
 let needsBackfillSave = false;
 for (const note of notes) {
@@ -85,19 +87,38 @@ function formatDateHeading(timestamp) {
   });
 }
 
+function getVisibleNotes() {
+  if (!searchQuery) return notes;
+  return notes.filter(
+    (n) =>
+      n.title.toLowerCase().includes(searchQuery) ||
+      n.body.toLowerCase().includes(searchQuery)
+  );
+}
+
 function render(flashId) {
   notesList.innerHTML = "";
+  const visibleNotes = getVisibleNotes();
 
   if (notes.length === 0) {
+    emptyState.textContent = "No notes yet. Add your first one above.";
     emptyState.hidden = false;
     updateBulkBar();
     return;
   }
+
+  if (visibleNotes.length === 0) {
+    emptyState.textContent = "No notes match your search.";
+    emptyState.hidden = false;
+    updateBulkBar();
+    return;
+  }
+
   emptyState.hidden = true;
 
   let lastDayKey = null;
 
-  for (const note of notes) {
+  for (const note of visibleNotes) {
     const noteDayKey = dayKey(note.createdAt);
     if (noteDayKey !== lastDayKey) {
       const heading = document.createElement("h3");
@@ -139,16 +160,20 @@ function render(flashId) {
 }
 
 function updateBulkBar() {
-  const total = notes.length;
+  const visibleNotes = getVisibleNotes();
+  const visibleSelectedCount = visibleNotes.filter((n) =>
+    selectedIds.has(n.id)
+  ).length;
   const selectedCount = selectedIds.size;
 
   bulkActions.hidden = selectedCount === 0;
   selectedCountEl.textContent =
     selectedCount === 1 ? "1 selected" : `${selectedCount} selected`;
 
-  selectAllCheckbox.checked = total > 0 && selectedCount === total;
+  selectAllCheckbox.checked =
+    visibleNotes.length > 0 && visibleSelectedCount === visibleNotes.length;
   selectAllCheckbox.indeterminate =
-    selectedCount > 0 && selectedCount < total;
+    visibleSelectedCount > 0 && visibleSelectedCount < visibleNotes.length;
 }
 
 function buildNoteCard(note) {
@@ -229,13 +254,19 @@ function buildEditCard(note) {
 }
 
 selectAllCheckbox.addEventListener("change", () => {
-  if (selectAllCheckbox.checked) {
-    for (const note of notes) {
+  const visibleNotes = getVisibleNotes();
+  for (const note of visibleNotes) {
+    if (selectAllCheckbox.checked) {
       selectedIds.add(note.id);
+    } else {
+      selectedIds.delete(note.id);
     }
-  } else {
-    selectedIds.clear();
   }
+  render();
+});
+
+searchInput.addEventListener("input", () => {
+  searchQuery = searchInput.value.trim().toLowerCase();
   render();
 });
 
