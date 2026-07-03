@@ -29,6 +29,16 @@
       No notes yet. Add your first one above.
     </p>
 
+    <div id="bulk-actions" class="bulk-row" hidden>
+      <input type="checkbox" id="select-all-checkbox" class="select-checkbox">
+      <div class="bulk-actions-box">
+        <span class="select-all-label">Select all</span>
+        <span id="selected-count"></span>
+        <button type="button" id="export-selected-btn" class="secondary">Export</button>
+        <button type="button" id="delete-selected-btn" class="danger">Delete</button>
+      </div>
+    </div>
+
     <div id="notes-list" class="notes-list"></div>
   </div>
 
