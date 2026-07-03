@@ -262,6 +262,11 @@ importFileInput.addEventListener("change", async () => {
     return;
   }
 
+  if (importedNotes.length === 0) {
+    showToast("No notes found in file");
+    return;
+  }
+
   notes = [...importedNotes, ...notes];
   saveNotes();
   render();
