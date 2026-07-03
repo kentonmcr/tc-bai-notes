@@ -87,6 +87,24 @@ function formatDateHeading(timestamp) {
   });
 }
 
+const CARD_COLORS = [
+  "#fdecc8",
+  "#d7e3fc",
+  "#e2f0cb",
+  "#ffd9e8",
+  "#e5d4ef",
+  "#d0f4f4",
+  "#ffe0cc",
+];
+
+function getCardColor(note) {
+  let hash = 0;
+  for (let i = 0; i < note.id.length; i++) {
+    hash = (hash * 31 + note.id.charCodeAt(i)) >>> 0;
+  }
+  return CARD_COLORS[hash % CARD_COLORS.length];
+}
+
 function getVisibleNotes() {
   if (!searchQuery) return notes;
   return notes.filter(
@@ -117,6 +135,7 @@ function render(flashId) {
   emptyState.hidden = true;
 
   let lastDayKey = null;
+  let currentGrid = null;
 
   for (const note of visibleNotes) {
     const noteDayKey = dayKey(note.createdAt);
@@ -125,6 +144,11 @@ function render(flashId) {
       heading.className = "date-heading";
       heading.textContent = formatDateHeading(note.createdAt);
       notesList.appendChild(heading);
+
+      currentGrid = document.createElement("div");
+      currentGrid.className = "notes-grid";
+      notesList.appendChild(currentGrid);
+
       lastDayKey = noteDayKey;
     }
 
@@ -153,7 +177,7 @@ function render(flashId) {
     }
 
     row.append(selectCheckbox, card);
-    notesList.appendChild(row);
+    currentGrid.appendChild(row);
   }
 
   updateBulkBar();
@@ -179,6 +203,7 @@ function updateBulkBar() {
 function buildNoteCard(note) {
   const card = document.createElement("div");
   card.className = "note-card";
+  card.style.setProperty("--card-color", getCardColor(note));
 
   const titleEl = document.createElement("h2");
   titleEl.textContent = note.title;
@@ -216,6 +241,7 @@ function buildNoteCard(note) {
 function buildEditCard(note) {
   const card = document.createElement("div");
   card.className = "note-card editing";
+  card.style.setProperty("--card-color", getCardColor(note));
 
   const titleField = document.createElement("input");
   titleField.type = "text";
