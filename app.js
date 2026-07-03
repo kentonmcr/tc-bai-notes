@@ -6,9 +6,15 @@ const bodyInput = document.getElementById("body-input");
 const notesList = document.getElementById("notes-list");
 const emptyState = document.getElementById("empty-state");
 const toast = document.getElementById("toast");
+const bulkActions = document.getElementById("bulk-actions");
+const selectAllCheckbox = document.getElementById("select-all-checkbox");
+const selectedCountEl = document.getElementById("selected-count");
+const exportSelectedBtn = document.getElementById("export-selected-btn");
+const deleteSelectedBtn = document.getElementById("delete-selected-btn");
 
 let notes = loadNotes();
 let toastTimeoutId = null;
+let selectedIds = new Set();
 
 function loadNotes() {
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -47,11 +53,28 @@ function render(flashId) {
 
   if (notes.length === 0) {
     emptyState.hidden = false;
+    updateBulkBar();
     return;
   }
   emptyState.hidden = true;
 
   for (const note of notes) {
+    const row = document.createElement("div");
+    row.className = "note-row";
+
+    const selectCheckbox = document.createElement("input");
+    selectCheckbox.type = "checkbox";
+    selectCheckbox.className = "select-checkbox";
+    selectCheckbox.checked = selectedIds.has(note.id);
+    selectCheckbox.addEventListener("change", () => {
+      if (selectCheckbox.checked) {
+        selectedIds.add(note.id);
+      } else {
+        selectedIds.delete(note.id);
+      }
+      updateBulkBar();
+    });
+
     const card = buildNoteCard(note);
     if (note.id === flashId) {
       card.classList.add("note-card--flash");
@@ -59,8 +82,25 @@ function render(flashId) {
         card.classList.remove("note-card--flash");
       });
     }
-    notesList.appendChild(card);
+
+    row.append(selectCheckbox, card);
+    notesList.appendChild(row);
   }
+
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const total = notes.length;
+  const selectedCount = selectedIds.size;
+
+  bulkActions.hidden = selectedCount === 0;
+  selectedCountEl.textContent =
+    selectedCount === 1 ? "1 selected" : `${selectedCount} selected`;
+
+  selectAllCheckbox.checked = total > 0 && selectedCount === total;
+  selectAllCheckbox.indeterminate =
+    selectedCount > 0 && selectedCount < total;
 }
 
 function buildNoteCard(note) {
@@ -90,6 +130,7 @@ function buildNoteCard(note) {
   deleteBtn.textContent = "Delete";
   deleteBtn.addEventListener("click", () => {
     notes = notes.filter((n) => n.id !== note.id);
+    selectedIds.delete(note.id);
     saveNotes();
     render();
   });
@@ -138,6 +179,41 @@ function buildEditCard(note) {
   card.append(titleField, bodyField, actions);
   return card;
 }
+
+selectAllCheckbox.addEventListener("change", () => {
+  if (selectAllCheckbox.checked) {
+    for (const note of notes) {
+      selectedIds.add(note.id);
+    }
+  } else {
+    selectedIds.clear();
+  }
+  render();
+});
+
+deleteSelectedBtn.addEventListener("click", () => {
+  const deletedCount = selectedIds.size;
+  notes = notes.filter((n) => !selectedIds.has(n.id));
+  selectedIds.clear();
+  saveNotes();
+  render();
+  showToast(deletedCount === 1 ? "1 note deleted" : `${deletedCount} notes deleted`);
+});
+
+exportSelectedBtn.addEventListener("click", () => {
+  const selectedNotes = notes.filter((n) => selectedIds.has(n.id));
+  const blob = new Blob([JSON.stringify(selectedNotes, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "notes-export.json";
+  link.click();
+
+  URL.revokeObjectURL(url);
+});
 
 addForm.addEventListener("submit", (event) => {
   event.preventDefault();
