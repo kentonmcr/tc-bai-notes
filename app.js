@@ -210,9 +210,11 @@ exportSelectedBtn.addEventListener("click", () => {
   const link = document.createElement("a");
   link.href = url;
   link.download = "notes-export.json";
+  document.body.appendChild(link);
   link.click();
+  link.remove();
 
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 });
 
 addForm.addEventListener("submit", (event) => {
